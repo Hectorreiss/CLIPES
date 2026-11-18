@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CLIPADOR</title>
+<style>
+:root{--bg:#0e0e10;--card:#18181b;--c2:#26262c;--bd:#2f2f35;--tx:#efeff1;--mu:#adadb8;--pr:#2f7bff;--cy:#19d3e6;--pk:#ff4fd8;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:inherit}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif}
+button,input,select{font:inherit;color:inherit}
+.hide{display:none!important}
+button{cursor:pointer;border:1px solid var(--bd);background:var(--c2);border-radius:8px;padding:8px 12px}
+button:hover{border-color:#6a6a74}
+.big{background:var(--pr);border:0;font-weight:700;padding:10px 20px;border-radius:8px}
+.big:hover{background:#4a8cff}.big:disabled{opacity:.5}
+header{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--bd)}
+header b{letter-spacing:.14em}.sp{flex:1}
+#ed{display:grid;grid-template-columns:1fr 340px;grid-template-rows:minmax(0,1fr) auto;gap:12px;padding:12px;height:calc(100vh - 54px)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:10px;min-height:0;min-width:0}
+.card h3{margin:0;font-size:14px}
+#port{grid-column:2;grid-row:1/3}
+.area{position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#lw,#pw{position:relative;background:#000;width:640px;height:360px}
+canvas{display:block;width:100%;height:100%}
+#empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;border:2px dashed #3a3a44;border-radius:10px;text-align:center;padding:16px;color:var(--mu)}
+#empty.on{border-color:var(--pr)}
+.bx{position:absolute;border:2px solid;cursor:move;touch-action:none}
+.bx.a{border-color:var(--cy)}.bx.b{border-color:var(--pk)}
+.h{position:absolute;width:12px;height:12px;margin:-6px;background:#fff;border:1px solid #222}
+.h[data-c=nw]{left:0;top:0;cursor:nwse-resize}.h[data-c=ne]{left:100%;top:0;cursor:nesw-resize}
+.h[data-c=sw]{left:0;top:100%;cursor:nesw-resize}.h[data-c=se]{left:100%;top:100%;cursor:nwse-resize}
+.reg{position:absolute;left:0;right:0;border:2px solid;pointer-events:none}
+#rb{top:0;border-color:var(--pk)}#ra{border-color:var(--cy)}
+#dv{position:absolute;left:50%;width:64px;height:18px;margin:-9px 0 0 -32px;background:#fff;color:#000;border-radius:99px;text-align:center;line-height:16px;cursor:ns-resize;touch-action:none;border:2px solid #000}
+.modes{display:flex;justify-content:center;gap:10px}
+.modes button{border-radius:99px;padding:8px 18px}
+.modes button.on{background:#fff;color:#000;border-color:#fff;font-weight:600}
+.ctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.t{font-variant-numeric:tabular-nums;margin-left:6px}
+#tl{position:relative;height:44px;background:#0c0c0e;border:1px solid var(--bd);border-radius:8px;cursor:pointer;touch-action:none;margin:8px 7px}
+#sl{position:absolute;top:0;bottom:0;background:#2f7bff44;border-top:2px solid var(--pr);border-bottom:2px solid var(--pr);pointer-events:none}
+.hd{position:absolute;top:-4px;bottom:-4px;width:14px;margin-left:-7px;background:var(--pr);border-radius:5px;cursor:ew-resize;touch-action:none}
+#ph{position:absolute;top:-6px;bottom:-6px;width:2px;background:#fff;pointer-events:none}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+label{display:flex;flex-direction:column;gap:3px;color:var(--mu);font-size:12px}
+select,input[type=text]{background:#0c0c0e;border:1px solid var(--bd);border-radius:8px;padding:8px;width:100%}
+.k{font-size:12px;color:var(--mu)}
+.warn{background:#33260a;border:1px solid #6b4a12;color:#ffb84d;padding:8px 10px;border-radius:8px;font-size:12px}
+#bar{height:10px;background:#0c0c0e;border-radius:99px;overflow:hidden;border:1px solid var(--bd)}
+#bar div{height:100%;width:0;background:var(--pr)}
+#dl{display:block;text-align:center;text-decoration:none;color:#fff}
+@media(max-width:900px){
+ #ed{display:flex;flex-direction:column;height:auto}
+ #land .area{height:34vh;flex:none}#port .area{height:56vh;flex:none}
+ button,select{min-height:44px}.h{width:20px;height:20px;margin:-10px}.hd{width:22px;margin-left:-11px}
+ #port{order:2}#bot{order:3}
+}
+</style></head><body>
+<video id="v" playsinline preload="auto" class="hide"></video>
+<input id="file" type="file" accept="video/*,.mp4,.webm,.mov" class="hide">
+<header><b>CLIPADOR</b><span class="sp"></span><button id="pick">Selecionar vídeo</button><button class="big" id="exp" disabled>EXPORTAR CLIPE</button></header>
+
+<div id="ed">
+ <section class="card" id="land"><h3>Versão em paisagem</h3>
+  <div class="area" id="lc">
+   <div id="lw" class="hide"><canvas id="org"></canvas><div class="bx b" id="bb"></div><div class="bx a" id="ba"></div></div>
+   <div id="empty"><b style="color:var(--tx);font-size:18px">Arraste seu vídeo aqui</b>ou<button id="pick2">Selecionar vídeo</button><span class="k">Processado no seu navegador. Nada é enviado a servidores.</span></div>
+  </div>
+ </section>
+
+ <section class="card" id="port"><h3>Versão em retrato</h3>
+  <div class="area" id="pc"><div id="pw"><canvas id="out" width="360" height="640"></canvas><div class="reg" id="rb"></div><div class="reg" id="ra"></div><div id="dv">⠿</div></div></div>
+  <div class="modes"><button id="mFull">▯ Cheia</button><button id="mStack" class="on">▤ Empilhado</button></div>
+ </section>
+
+ <section class="card" id="bot">
+  <div class="ctl">
+   <button id="bf">◀|</button><button id="pl" style="min-width:60px">▶</button><button id="ff">|▶</button>
+   <span class="t" id="tm">00:00 / 00:00</span><span class="sp"></span>
+   <button id="si">[ Início</button><button id="sf">Fim ]</button>
+  </div>
+  <div id="tl"><div id="sl"></div><div class="hd" id="h1"></div><div class="hd" id="h2"></div><div id="ph"></div></div>
+  <div class="k" id="selinfo">Carregue um vídeo para começar.</div>
+  <div class="opts">
+   <label>Saída<select id="so"></select></label>
+   <label>Qualidade<select id="sq"></select></label>
+   <label>Formato do arquivo<select id="sc"></select></label>
+   <label>Nome<input type="text" id="nm" value="gta-vi-clipe"></label>
+  </div>
+  <div class="k" id="sum"></div>
+  <div class="warn hide" id="rw"></div>
+  <div id="prog" class="hide"><div id="bar"><div></div></div><div class="ctl" style="margin-top:6px"><span id="pt">0%</span><span class="sp"></span><button id="cancel">Cancelar</button></div></div>
+  <a id="dl" class="big hide">BAIXAR CLIPE</a>
+ </section>
+</div>
+
+<script>
+const $=s=>document.querySelector(s),v=$('#v');
+const QL=[['Econômica',10],['Alta',20],['Muito alta',35],['2K máxima qualidade',60]];
+const OUT={p1440:['Retrato 9:16 · 1440×2560 (2K)',1440,2560],p1080:['Retrato 9:16 · 1080×1920',1080,1920],l2560:['Paisagem 16:9 · 2560×1440 (2K)',2560,1440]};
+const S={w:0,h:0,fps:30,dur:0,a:0,b:0,mode:'stack',split:.4,out:'p1440',q:3,bx:{A:{x:.3,y:.2,w:.3},B:{x:.7,y:.05,w:.25}},exporting:false};
+const pad=n=>String(n).padStart(2,'0'),tf=t=>pad(Math.floor(Math.max(0,t)/60))+':'+pad(Math.floor(Math.max(0,t)%60));
+const isP=()=>S.out[0]==='p';
+const asp=k=>.5625/(k==='B'?S.split:(S.mode==='full'?1:1-S.split));
+const hn=k=>S.bx[k].w*S.w/asp(k)/S.h;
+function clamp(k){const b=S.bx[k];b.w=Math.max(.04,Math.min(b.w,1,S.h*asp(k)/S.w));b.x=Math.min(1-b.w,Math.max(0,b.x));b.y=Math.min(1-hn(k),Math.max(0,b.y))}
+
+/* ---------- Caixas de recorte (arrastar e redimensionar) ---------- */
+for(const k of['a','b'])['nw','ne','sw','se'].forEach(c=>{const h=document.createElement('i');h.className='h';h.dataset.c=c;$('#b'+k).appendChild(h)});
+function boxDrag(el,k){el.addEventListener('pointerdown',e=>{
+ e.preventDefault();const r=$('#lw').getBoundingClientRect(),b={...S.bx[k]},h0=hn(k),sx=e.clientX,sy=e.clientY,c=e.target.dataset.c,t=e.target;t.setPointerCapture(e.pointerId);
+ t.onpointermove=ev=>{const dx=(ev.clientX-sx)/r.width,o=S.bx[k];
+  if(!c){o.x=b.x+dx;o.y=b.y+(ev.clientY-sy)/r.height}
+  else{const L=c.includes('w');o.w=Math.max(.04,Math.min(b.w+(L?-dx:dx),1,S.h*asp(k)/S.w));const h=hn(k);o.x=L?b.x+b.w-o.w:b.x;o.y=c.includes('n')?b.y+h0-h:b.y}
+  clamp(k);place()};
+ t.onpointerup=()=>t.onpointermove=null})}
+boxDrag($('#ba'),'A');boxDrag($('#bb'),'B');
+$('#dv').onpointerdown=e=>{e.preventDefault();const d=$('#dv'),r=$('#pw').getBoundingClientRect();d.setPointerCapture(e.pointerId);
+ d.onpointermove=ev=>{S.split=Math.min(.7,Math.max(.25,(ev.clientY-r.top)/r.height));clamp('A');clamp('B');place()};d.onpointerup=()=>d.onpointermove=null};
+function place(){
+ for(const k of['A','B']){const b=S.bx[k];$('#b'+k.toLowerCase()).style.cssText=`left:${b.x*100}%;top:${b.y*100}%;width:${b.w*100}%;height:${hn(k)*100}%`}
+ const P=isP(),st=S.mode==='stack';
+ $('#ba').classList.toggle('hide',!P);$('#bb').classList.toggle('hide',!P||!st);
+ $('#rb').classList.toggle('hide',!P||!st);$('#ra').classList.toggle('hide',!P);$('#dv').classList.toggle('hide',!P||!st);
+ $('#rb').style.height=S.split*100+'%';$('#ra').style.top=(st?S.split*100:0)+'%';$('#ra').style.height=(st?(1-S.split)*100:100)+'%';$('#dv').style.top=S.split*100+'%';
+ document.querySelector('.modes').classList.toggle('hide',!P);
+ $('#mFull').classList.toggle('on',!st);$('#mStack').classList.toggle('on',st);info()}
+$('#mFull').onclick=()=>{S.mode='full';clamp('A');place()};
+$('#mStack').onclick=()=>{S.mode='stack';clamp('A');clamp('B');place()};
+
+/* ---------- Render ---------- */
+function render(x,W,H){x.fillStyle='#000';x.fillRect(0,0,W,H);if(!S.w)return;
+ if(!isP()){const k=Math.min(W/S.w,H/S.h),w=S.w*k,h=S.h*k;x.drawImage(v,(W-w)/2,(H-h)/2,w,h);return}
+ const seg=(k,y,h)=>{const b=S.bx[k];x.drawImage(v,b.x*S.w,b.y*S.h,b.w*S.w,hn(k)*S.h,0,y,W,h)};
+ if(S.mode==='full')seg('A',0,H);else{seg('B',0,H*S.split);seg('A',H*S.split,H*(1-S.split))}}
+function fit(wrap,ar){const p=wrap.parentElement;let w=p.clientWidth,h=w/ar;if(h>p.clientHeight){h=p.clientHeight;w=h*ar}wrap.style.width=Math.max(40,w)+'px';wrap.style.height=Math.max(40,h)+'px'}
+function layout(){fit($('#lw'),S.w?S.w/S.h:16/9);const o=OUT[S.out];fit($('#pw'),o[1]/o[2]);const c=$('#out');if(c.width!==Math.min(o[1],720)){c.width=Math.min(o[1],720);c.height=Math.round(c.width*o[2]/o[1])}}
+addEventListener('resize',layout);
+function frame(){
+ if(S.w&&!S.exporting){$('#org').getContext('2d').drawImage(v,0,0,$('#org').width,$('#org').height);const c=$('#out');render(c.getContext('2d'),c.width,c.height);
+  if(!v.paused&&v.currentTime>=S.b){v.pause();v.currentTime=S.a}}
+ tlr();$('#pl').textContent=v.paused?'▶':'❚❚';requestAnimationFrame(frame)}
+
+/* ---------- Importar vídeo ---------- */
+async function load(f){
+ if(!f)return;v.src=URL.createObjectURL(f);v.muted=true;
+ try{await new Promise((ok,no)=>{v.onloadedmetadata=ok;v.onerror=()=>no()})}catch(e){alert('O navegador não conseguiu abrir este vídeo (codec não suportado). Converta para MP4 H.264 ou WebM.');return}
+ S.w=v.videoWidth;S.h=v.videoHeight;S.dur=v.duration;S.a=0;S.b=Math.min(S.dur,60);
+ $('#org').width=960;$('#org').height=Math.round(960*S.h/S.w);
+ S.bx.A={x:.3,y:.2,w:.4};S.bx.B={x:.72,y:.04,w:.25};clamp('A');clamp('B');S.bx.A.x=.5-S.bx.A.w/2;S.bx.A.y=0;
+ S.fps=await fps();v.muted=false;v.currentTime=0;
+ $('#empty').classList.add('hide');$('#lw').classList.remove('hide');$('#exp').disabled=false;layout();place()}
+function fps(){return new Promise(res=>{if(!v.requestVideoFrameCallback)return res(30);
+ const m=[];let d=false;const end=()=>{if(d)return;d=true;v.pause();v.currentTime=0;const a=[];for(let i=1;i<m.length;i++){const x=m[i]-m[i-1];if(x>0)a.push(x)}a.sort((p,q)=>p-q);
+  if(!a.length)return res(30);const r=1/a[Math.floor(a.length/2)];res([24,25,30,48,50,60,90,120].reduce((p,c)=>Math.abs(c-r)<Math.abs(p-r)?c:p))};
+ const cb=(n,md)=>{m.push(md.mediaTime);m.length<16?v.requestVideoFrameCallback(cb):end()};v.requestVideoFrameCallback(cb);v.play().catch(end);setTimeout(end,1800)})}
+const fi=$('#file');fi.onchange=()=>load(fi.files[0]);$('#pick').onclick=$('#pick2').onclick=()=>fi.click();
+['dragover','dragenter'].forEach(n=>addEventListener(n,e=>{e.preventDefault();$('#empty').classList.add('on')}));
+['dragleave','drop'].forEach(n=>addEventListener(n,e=>{e.preventDefault();$('#empty').classList.remove('on')}));
+addEventListener('drop',e=>load(e.dataTransfer.files[0]));
+
+/* ---------- Timeline ---------- */
+const tl=$('#tl'),snap=t=>Math.min(S.dur,Math.max(0,Math.round(t*S.fps)/S.fps)),pc=t=>S.dur?t/S.dur*100+'%':'0';
+const x2t=x=>{const r=tl.getBoundingClientRect();return snap((x-r.left)/r.width*S.dur)};
+function tlr(){if(!S.dur)return;$('#sl').style.left=pc(S.a);$('#sl').style.width=(S.b-S.a)/S.dur*100+'%';$('#h1').style.left=pc(S.a);$('#h2').style.left=pc(S.b);$('#ph').style.left=pc(v.currentTime);
+ $('#tm').textContent=tf(v.currentTime)+' / '+tf(S.dur);$('#selinfo').textContent=`Trecho: ${tf(S.a)} → ${tf(S.b)} (${(S.b-S.a).toFixed(2)} s)`}
+function drag(el,fn){el.addEventListener('pointerdown',e=>{if(!S.dur)return;e.stopPropagation();el.setPointerCapture(e.pointerId);const m=ev=>fn(x2t(ev.clientX));el.onpointermove=m;el.onpointerup=()=>el.onpointermove=null;m(e)})}
+drag($('#h1'),t=>{S.a=Math.min(t,S.b-.1);v.currentTime=S.a;info()});drag($('#h2'),t=>{S.b=Math.max(t,S.a+.1);v.currentTime=Math.max(S.a,S.b-1/S.fps);info()});
+tl.addEventListener('pointerdown',e=>{if(!S.dur||e.target!==tl)return;const g=ev=>v.currentTime=x2t(ev.clientX);g(e);tl.setPointerCapture(e.pointerId);tl.onpointermove=g;tl.onpointerup=()=>tl.onpointermove=null});
+$('#bf').onclick=()=>{v.pause();v.currentTime=snap(v.currentTime-1/S.fps)};$('#ff').onclick=()=>{v.pause();v.currentTime=snap(v.currentTime+1/S.fps)};
+$('#pl').onclick=()=>{if(!S.dur)return;if(v.paused){if(v.currentTime<S.a||v.currentTime>=S.b-.05)v.currentTime=S.a;v.play()}else v.pause()};
+$('#si').onclick=()=>{S.a=Math.min(snap(v.currentTime),S.b-.1);info()};$('#sf').onclick=()=>{S.b=Math.max(snap(v.currentTime),S.a+.1);info()};
+addEventListener('keydown',e=>{if(/INPUT|SELECT/.test(e.target.tagName))return;if(e.code==='Space'){e.preventDefault();$('#pl').click()}else if(e.key==='ArrowLeft')$('#bf').click();else if(e.key==='ArrowRight')$('#ff').click();else if(/^i$/i.test(e.key))$('#si').click();else if(/^o$/i.test(e.key))$('#sf').click()});
+
+/* ---------- Opções e resumo ---------- */
+const bps=()=>{const o=OUT[S.out];return Math.min(80e6,QL[S.q][1]*1e6*(o[1]*o[2]/3686400)*(S.fps>45?1:.7))};
+const mimes=()=>[['MP4 (H.264)','video/mp4;codecs=avc1.640033','mp4'],['MP4','video/mp4','mp4'],['WebM (VP9)','video/webm;codecs=vp9,opus','webm'],['WebM','video/webm','webm']].filter(x=>window.MediaRecorder&&MediaRecorder.isTypeSupported(x[1]));
+$('#so').innerHTML=Object.entries(OUT).map(([k,o])=>`<option value="${k}">${o[0]}</option>`).join('');
+$('#sq').innerHTML=QL.map((q,i)=>`<option value="${i}">${q[0]}</option>`).join('');$('#sq').value=3;
+$('#sc').innerHTML=mimes().map((m,i)=>`<option value="${i}">${m[0]}</option>`).join('')||'<option>Sem suporte</option>';
+$('#so').onchange=e=>{S.out=e.target.value;layout();clamp('A');clamp('B');place()};$('#sq').onchange=e=>{S.q=+e.target.value;info()};$('#sc').onchange=info;
+function info(){if(!S.w){$('#sum').textContent='';return}const o=OUT[S.out],d=S.b-S.a,mb=bps()*d/8e6;
+ $('#sum').innerHTML=`Original: <b>${S.w}×${S.h} • ${S.fps} FPS</b> · Clipe: <b>${o[1]}×${o[2]} • ${S.fps} FPS</b> · Duração: <b>${tf(d)}</b> · Qualidade: <b>${QL[S.q][0]}</b> · Tamanho estimado: <b>~${mb<1?mb.toFixed(1):Math.round(mb)} MB</b>`;
+ const srcW=isP()?S.bx.A.w*S.w:S.w,low=srcW<o[1];$('#rw').classList.toggle('hide',!low);
+ $('#rw').textContent=`O recorte original tem ${Math.round(srcW)} px de largura e a saída tem ${o[1]} px. O vídeo será ampliado, sem ganho real de detalhe. Aumente a caixa ou escolha uma saída menor.`}
+
+/* ---------- Exportação local ---------- */
+let AC,gain,dest,rec,cancelled=false;
+function audio(){if(AC)return;AC=new AudioContext();const s=AC.createMediaElementSource(v);dest=AC.createMediaStreamDestination();gain=AC.createGain();s.connect(dest);s.connect(gain);gain.connect(AC.destination)}
+$('#exp').onclick=async()=>{
+ const M=mimes();if(!M.length){alert('Este navegador não suporta gravação de vídeo. Use Chrome, Edge ou Safari atualizados.');return}
+ if(S.exporting)return;const m=M[+$('#sc').value]||M[0],o=OUT[S.out],W=o[1],H=o[2],c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+ S.exporting=true;cancelled=false;$('#dl').classList.add('hide');$('#prog').classList.remove('hide');$('#exp').disabled=true;
+ try{audio();await AC.resume();gain.gain.value=0;v.pause();v.currentTime=S.a;await new Promise(r=>v.onseeked=r);
+  const cs=c.captureStream(S.fps);dest.stream.getAudioTracks().forEach(t=>cs.addTrack(t));const ch=[];
+  rec=new MediaRecorder(cs,{mimeType:m[1],videoBitsPerSecond:bps(),audioBitsPerSecond:256000});rec.ondataavailable=e=>e.data.size&&ch.push(e.data);
+  const fin=new Promise(r=>rec.onstop=r),t0=performance.now(),dur=S.b-S.a;rec.start(500);await v.play();
+  await new Promise(done=>{const step=()=>{if(cancelled)return done();render(x,W,H);const p=Math.min(1,(v.currentTime-S.a)/dur),el=(performance.now()-t0)/1000;
+   $('#bar div').style.width=p*100+'%';$('#pt').textContent=Math.round(p*100)+'%'+(p>.03?' • faltam ~'+Math.ceil(el/p*(1-p))+' s':'');
+   if(v.currentTime>=S.b-1/S.fps||v.ended||(v.paused&&p>.5))return done();v.requestVideoFrameCallback?v.requestVideoFrameCallback(step):requestAnimationFrame(step)};step()});
+  v.pause();rec.stop();await fin;
+  if(!cancelled){const blob=new Blob(ch,{type:m[1].split(';')[0]}),a=$('#dl');a.href=URL.createObjectURL(blob);a.download=($('#nm').value||'clipe')+'-'+W+'x'+H+'.'+m[2];a.classList.remove('hide');$('#pt').textContent='Pronto • '+(blob.size/1e6).toFixed(1)+' MB'}
+ }catch(err){alert('Falha na exportação: '+err.message)}
+ gain&&(gain.gain.value=1);S.exporting=false;$('#exp').disabled=false;v.currentTime=S.a};
+$('#cancel').onclick=()=>{cancelled=true;try{rec.stop()}catch(e){}$('#prog').classList.add('hide')};
+layout();place();requestAnimationFrame(frame);
+</script></body></html>
